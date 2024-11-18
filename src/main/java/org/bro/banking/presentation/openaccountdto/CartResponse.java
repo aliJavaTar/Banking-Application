@@ -13,7 +13,7 @@ public class CartResponse {
 
     private String name;
     private String family;
-    private short cvv2;
+    private int cvv2;
     private LocalDate expirationDate;
     private String numberOfCart;
     private String ibanNumber;
