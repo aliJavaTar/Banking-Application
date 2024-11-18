@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 public class OpenAccountRequest {
-
+    private long bankId;
     private BigDecimal amount;
     private String nameOfBank;
     private int codeOfBank;
