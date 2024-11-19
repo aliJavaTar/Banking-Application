@@ -14,11 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OpenAccountShould {
+
     @Mock
     private Accounts mockAccounts;
     @Mock
@@ -26,21 +28,31 @@ class OpenAccountShould {
 
     @Test
     void customer_canNot_open_account_with_existed_acc_in_same_bank() {
-        when(mockAccounts.isExist(anyString(), anyString())).thenReturn(true);
+        when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(true);
         var openAccount = new OpenAccount(mockAccounts, banks);
         assertThrows(IllegalArgumentException.class, () -> openAccount.open(getRequest()));
     }
 
     @Test
+    void can_not_open_account_with_wrong_phone_number() {
+        when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
+        var openAccount = new OpenAccount(mockAccounts, banks);
+        OpenAccountRequest request = OpenAccountRequest.builder().amount(new BigDecimal(10)).bankId(1).firstname("")
+                .phoneNumber("4353452354").lastname("").nameOfFather("test").nationalCode("")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> openAccount.open(request));
+    }
+
+    @Test
     void generateCardNumber_16_digit_fourth_first_number_be_uneque_for_each_name_of_bank() {
-        Account account = new Account();
-        account.generatedCard("mali");
+
     }
 
     @Test
     void customer_open_account_and_get_cart() {
-        when(mockAccounts.isExist(anyString(), anyString())).thenReturn(false);
-        var openAccount = new OpenAccount(mockAccounts,banks);
+        when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
+        var openAccount = new OpenAccount(mockAccounts, banks);
 
 
         OpenAccountRequest request = getRequest();
@@ -60,12 +72,12 @@ class OpenAccountShould {
     private OpenAccountRequest getRequest() {
         return OpenAccountRequest.builder()
                 .amount(new BigDecimal(10))
+                .bankId(1)
                 .firstname("")
+                .phoneNumber("09212221423")
                 .lastname("")
-                .codeOfBank(123)
                 .nameOfFather("test")
                 .nationalCode("")
-                .nameOfBank("")
                 .build();
 
 

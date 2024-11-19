@@ -3,6 +3,8 @@ package org.bro.banking.presentation.openaccountdto;
 
 import lombok.*;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 
@@ -14,8 +16,6 @@ import java.math.BigDecimal;
 public class OpenAccountRequest {
     private long bankId;
     private BigDecimal amount;
-    private String nameOfBank;
-    private int codeOfBank;
     @Size(min = 3, max = 15)
     private String firstname;
     @Size(min = 3, max = 15)
@@ -24,6 +24,8 @@ public class OpenAccountRequest {
     private String nameOfFather;
     @Size(min = 10, max = 12)
     private String nationalCode;
-
-
+    @NotBlank
+    private String address;
+    @NotBlank
+    private String phoneNumber;
 }
