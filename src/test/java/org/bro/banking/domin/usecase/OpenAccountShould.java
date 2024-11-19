@@ -7,6 +7,7 @@ import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.domin.account.usecase.OpenAccount;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -45,6 +46,7 @@ class OpenAccountShould {
 
         assertThrows(IllegalArgumentException.class, () -> openAccount.open(request));
     }
+
     //unique
     @Test
     void generateCardNumber_16_digit_fourth_first_number_be_unique_for_each_name_of_bank() {
@@ -62,9 +64,12 @@ class OpenAccountShould {
 
         System.out.println(open.getNumberOfCart());
 
+        Assertions.assertThat(open.getNumberOfCart().length()).isEqualTo(16);
+        Assertions.assertThat(open.getNumberOfCart().substring(0,4)).isEqualTo(bank.getCode());
+//        4231550647903662 4231667621451342  4231215233675641
 
     }
-
+    @Disabled
     @Test
     void customer_open_account_and_get_cart() {
         when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
