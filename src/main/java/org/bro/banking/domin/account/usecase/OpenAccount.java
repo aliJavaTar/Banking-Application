@@ -10,9 +10,7 @@ import org.bro.banking.domin.Banks;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDate;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -23,22 +21,26 @@ public class OpenAccount {
     private final Accounts accounts;
     private final Banks banks;
     private static final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-
+    ThreadLocalRandom random = ThreadLocalRandom.current();
 
     public CartResponse open(OpenAccountRequest request) {
         boolean exist = accounts.isExist(request.getNationalCode(), request.getBankId());
         if (exist)
             throw new IllegalArgumentException("you have an account already ");
-        var cartResponse = new CartResponse();
+
 
         validatePhoneNumber(request.getPhoneNumber());
 
-        cartResponse.setNumberOfCart(generate(request.getBankId()));
 
-        return cartResponse;
+        return CartResponse.builder().name(request.getFirstname())
+                .family(request.getLastname())
+                .expirationDate(LocalDate.now().plusYears(5))
+                .cvv2(random.nextInt(random.nextInt(100, 9999)))
+                .numberOfCart(generate(request.getBankId(), 16))
+                .ibanNumber(REGION_CODE + generate(request.getBankId(), 24)).build();
     }
 
-    private String generate(long bankId) {
+    private String generate(long bankId, int length) {
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
@@ -46,7 +48,7 @@ public class OpenAccount {
                 new IllegalArgumentException("this bank does not exist"));
 
 
-        int randomNumberLength = 16 - (bank.getCode().length() + 1);
+        int randomNumberLength = length - (bank.getCode().length() + 1);
 
         var builder = new StringBuilder(bank.getCode());
         for (int i = 0; i < randomNumberLength; i++) {

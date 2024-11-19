@@ -7,7 +7,6 @@ import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.domin.account.usecase.OpenAccount;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,12 +43,14 @@ class OpenAccountShould {
                 .phoneNumber("4353452354").lastname("").nameOfFather("test").nationalCode("")
                 .build();
 
+
         assertThrows(IllegalArgumentException.class, () -> openAccount.open(request));
+
     }
 
-    //unique
+
     @Test
-    void generateCardNumber_16_digit_fourth_first_number_be_unique_for_each_name_of_bank() {
+    void customer_open_account_and_get_cart() {
         when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
 
         var bank = new Bank();
@@ -57,36 +58,22 @@ class OpenAccountShould {
         when(banks.getById(anyLong())).thenReturn(Optional.of(bank));
 
         var openAccount = new OpenAccount(mockAccounts, banks);
-        var request = OpenAccountRequest.builder().amount(new BigDecimal(10)).bankId(1).firstname("")
-                .phoneNumber("+989302223121").lastname("").nameOfFather("test").nationalCode("")
+        var request = OpenAccountRequest.builder()
+                .amount(new BigDecimal(10))
+                .bankId(1)
+                .firstname("")
+                .phoneNumber("+989302223121")
+                .lastname("")
+                .nameOfFather("test")
+                .nationalCode("")
                 .build();
-        CartResponse open = openAccount.open(request);
 
-        System.out.println(open.getNumberOfCart());
-
-        Assertions.assertThat(open.getNumberOfCart().length()).isEqualTo(16);
-        Assertions.assertThat(open.getNumberOfCart().substring(0,4)).isEqualTo(bank.getCode());
-//        4231550647903662 4231667621451342  4231215233675641
-
-    }
-    @Disabled
-    @Test
-    void customer_open_account_and_get_cart() {
-        when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
-        var openAccount = new OpenAccount(mockAccounts, banks);
+        CartResponse response = openAccount.open(request);
 
 
-        OpenAccountRequest request = getRequest();
-
-
-        CartResponse malie = openAccount.open(request);
-
-        int length = String.valueOf(malie.getCvv2()).length();
-
-
-        Assertions.assertThat(length).isEqualTo(3);
-//        todo test date
-//        Assertions.assertThat(malie.)
+        Assertions.assertThat(response.getFamily()).isEqualTo("");
+        Assertions.assertThat(response.getNumberOfCart().length()).isEqualTo(16);
+        Assertions.assertThat(response.getNumberOfCart().substring(0, 4)).isEqualTo(bank.getCode());
 
     }
 
@@ -100,7 +87,5 @@ class OpenAccountShould {
                 .nameOfFather("test")
                 .nationalCode("")
                 .build();
-
-
     }
 }
