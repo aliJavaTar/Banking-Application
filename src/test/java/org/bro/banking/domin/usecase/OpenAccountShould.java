@@ -1,6 +1,7 @@
 package org.bro.banking.domin.usecase;
 
 import org.assertj.core.api.Assertions;
+import org.bro.banking.domin.Bank;
 import org.bro.banking.domin.Banks;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.domin.account.usecase.OpenAccount;
@@ -12,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -43,9 +45,23 @@ class OpenAccountShould {
 
         assertThrows(IllegalArgumentException.class, () -> openAccount.open(request));
     }
-
+    //unique
     @Test
-    void generateCardNumber_16_digit_fourth_first_number_be_uneque_for_each_name_of_bank() {
+    void generateCardNumber_16_digit_fourth_first_number_be_unique_for_each_name_of_bank() {
+        when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
+
+        var bank = new Bank();
+        bank.setCode("4231");
+        when(banks.getById(anyLong())).thenReturn(Optional.of(bank));
+
+        var openAccount = new OpenAccount(mockAccounts, banks);
+        var request = OpenAccountRequest.builder().amount(new BigDecimal(10)).bankId(1).firstname("")
+                .phoneNumber("+989302223121").lastname("").nameOfFather("test").nationalCode("")
+                .build();
+        CartResponse open = openAccount.open(request);
+
+        System.out.println(open.getNumberOfCart());
+
 
     }
 
