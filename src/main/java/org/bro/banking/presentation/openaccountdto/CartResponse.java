@@ -10,7 +10,8 @@ import java.time.LocalDate;
 @Setter
 @Builder
 public class CartResponse {
-
+    private long secondPassword;
+    private int mainPassword;
     private String name;
     private String family;
     private int cvv2;
