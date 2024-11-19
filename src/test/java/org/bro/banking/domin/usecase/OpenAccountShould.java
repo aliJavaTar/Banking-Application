@@ -2,7 +2,6 @@ package org.bro.banking.domin.usecase;
 
 import org.assertj.core.api.Assertions;
 import org.bro.banking.domin.Banks;
-import org.bro.banking.domin.account.Account;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.domin.account.usecase.OpenAccount;
 import org.bro.banking.presentation.openaccountdto.CartResponse;

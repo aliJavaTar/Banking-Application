@@ -2,7 +2,6 @@ package org.bro.banking.domin.account.usecase;
 
 import lombok.RequiredArgsConstructor;
 import org.bro.banking.domin.Banks;
-import org.bro.banking.domin.account.Account;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
@@ -17,10 +16,7 @@ public class OpenAccount {
         if (exist)
             throw new IllegalArgumentException("you have an account already ");
 
-        Account account = new Account();
-        Account accountCreated = banks.getById(request.getBankId())
-                .map(bank -> account.generatedCard(bank.getName()))
-                .orElseThrow(() -> new IllegalStateException("bank not found"));
+
 
 
         return null;
