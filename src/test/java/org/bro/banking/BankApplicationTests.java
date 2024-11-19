@@ -1,10 +1,10 @@
-package org.bro.onlineexam;
+package org.bro.banking;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OnlineExamApplicationTests {
+class BankApplicationTests {
 
     @Test
     void contextLoads() {
