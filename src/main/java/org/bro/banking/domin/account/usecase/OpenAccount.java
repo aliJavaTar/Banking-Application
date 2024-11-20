@@ -41,81 +41,61 @@ public class OpenAccount {
         phoneNumberUtil.isValidNumberForRegion(phone, REGION_CODE);
 
 
-        ThreadLocalRandom random1 = ThreadLocalRandom.current();
-
-        Bank bank = banks.getById(request.getBankId()).orElseThrow(() ->
-                new IllegalArgumentException("this bank does not exist"));
-
-
-        int randomNumberLength = 24 - (bank.getCode().length() + 1);
-
-        var builder = new StringBuilder(bank.getCode());
-        for (int i = 0; i < randomNumberLength; i++) {
-            int digit = random1.nextInt(10);
-            builder.append(digit);
-        }
-
-
-        String number1 = builder.toString();
-        int sum1 = 0;
-        for (int i1 = 0; i1 < number1.length(); i1++) {
-
-            int digit1 = Integer.parseInt(number1.substring(i1, (i1 + 1)));
-
-            if ((i1 % 2) == 0) {
-                digit1 = digit1 * 2;
-                if (digit1 > 9) {
-                    digit1 = (digit1 / 10) + (digit1 % 10);
-                }
-            }
-            sum1 += digit1;
-        }
-        int mod1 = sum1 % 10;
-        int checkDigit = ((mod1 == 0) ? 0 : 10 - mod1);
-        builder.append(checkDigit);
-
-        ThreadLocalRandom random2 = ThreadLocalRandom.current();
-
-        Bank bank1 = banks.getById(request.getBankId()).orElseThrow(() ->
-                new IllegalArgumentException("this bank does not exist"));
-
-
-        int randomNumberLength1 = 16 - (bank1.getCode().length() + 1);
-
-        var builder1 = new StringBuilder(bank1.getCode());
-        for (int i = 0; i < randomNumberLength1; i++) {
-            int digit = random2.nextInt(10);
-            builder1.append(digit);
-        }
-
-
-        String number = builder1.toString();
-        int sum = 0;
-        for (int i = 0; i < number.length(); i++) {
-
-            int digit = Integer.parseInt(number.substring(i, (i + 1)));
-
-            if ((i % 2) == 0) {
-                digit = digit * 2;
-                if (digit > 9) {
-                    digit = (digit / 10) + (digit % 10);
-                }
-            }
-            sum += digit;
-        }
-        int mod = sum % 10;
-        int checkDigit1 = ((mod == 0) ? 0 : 10 - mod);
-        builder1.append(checkDigit1);
-
         return CartResponse.builder().name(request.getFirstname())
                 .family(request.getLastname())
                 .expirationDate(LocalDate.now().plusYears(5))
                 .cvv2(random.nextInt(random.nextInt(100, 9999)))
                 .mainPassword(random.nextInt(random.nextInt(1000, 9999)))
                 .secondPassword(random.nextLong(random.nextInt(100000000, 999999999)))
-                .numberOfCart(builder1.toString())
-                .ibanNumber(REGION_CODE + builder.toString()).build();
+                .numberOfCart(generate(request.getBankId(), 12))
+                .ibanNumber(REGION_CODE + generate(request.getBankId(), 22)).build();
     }
 
+    private String generate(long bankId, int length) {
+        boolean tryAgain = true;
+
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+
+        Bank bank = banks.getById(bankId).orElseThrow(() ->
+                new IllegalArgumentException("this bank does not exist"));
+        var builder = new StringBuilder();
+
+        while (tryAgain) {
+
+            builder.append(bank.getCode());
+            for (int i = 0; i < length; i++) {
+                int digit = random.nextInt(10);
+                builder.append(digit);
+            }
+            var cardNumber = builder.toString();
+            if (checkLuhn(cardNumber))
+                tryAgain = false;
+            else
+                builder.delete(0, cardNumber.length());
+
+        }
+        return builder.toString();
+    }
+
+
+    static boolean checkLuhn(String cardNo) {
+        int nDigits = cardNo.length();
+
+        int nSum = 0;
+        boolean isSecond = false;
+        for (int i = nDigits - 1; i >= 0; i--) {
+
+            int d = cardNo.charAt(i) - '0';
+
+            if (isSecond)
+                d = d * 2;
+
+            nSum += d / 10;
+            nSum += d % 10;
+
+            isSecond = !isSecond;
+        }
+        return (nSum % 10 == 0);
+    }
 
 }
