@@ -1,4 +1,4 @@
-package org.bro.banking.domin;
+package org.bro.banking.domin.bank;
 
 import lombok.Setter;
 

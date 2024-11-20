@@ -5,8 +5,8 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bro.banking.domin.Bank;
-import org.bro.banking.domin.Banks;
+import org.bro.banking.domin.bank.Bank;
+import org.bro.banking.domin.bank.Banks;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
@@ -40,6 +40,8 @@ public class OpenAccount {
         }
         phoneNumberUtil.isValidNumberForRegion(phone, REGION_CODE);
 
+        Bank bank = banks.getById(request.getBankId()).orElseThrow(() ->
+                new IllegalArgumentException("this bank does not exist"));
 
         return CartResponse.builder().name(request.getFirstname())
                 .family(request.getLastname())
@@ -47,23 +49,29 @@ public class OpenAccount {
                 .cvv2(random.nextInt(random.nextInt(100, 9999)))
                 .mainPassword(random.nextInt(random.nextInt(1000, 9999)))
                 .secondPassword(random.nextLong(random.nextInt(100000000, 999999999)))
-                .numberOfCart(generate(request.getBankId(), 12))
-                .ibanNumber(REGION_CODE + generate(request.getBankId(), 22)).build();
+                .numberOfCart(generateCardNumber(bank.getCode()))
+                .ibanNumber(generate()).build();
     }
 
-    private String generate(long bankId, int length) {
+    private String generate() {
+
+        var builder = new StringBuilder();
+        builder.append(REGION_CODE);
+        for (int i = 0; i < 22; i++) {
+            int digit = random.nextInt(10);
+            builder.append(digit);
+        }
+        return builder.toString();
+
+    }
+
+    private String generateCardNumber(String codeBank) {
         boolean tryAgain = true;
 
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-
-        Bank bank = banks.getById(bankId).orElseThrow(() ->
-                new IllegalArgumentException("this bank does not exist"));
         var builder = new StringBuilder();
-
         while (tryAgain) {
-
-            builder.append(bank.getCode());
-            for (int i = 0; i < length; i++) {
+            builder.append(codeBank);
+            for (int i = 0; i < 12; i++) {
                 int digit = random.nextInt(10);
                 builder.append(digit);
             }

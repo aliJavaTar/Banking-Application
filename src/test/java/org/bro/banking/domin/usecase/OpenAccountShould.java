@@ -1,8 +1,8 @@
 package org.bro.banking.domin.usecase;
 
 import org.assertj.core.api.Assertions;
-import org.bro.banking.domin.Bank;
-import org.bro.banking.domin.Banks;
+import org.bro.banking.domin.bank.Bank;
+import org.bro.banking.domin.bank.Banks;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.domin.account.usecase.OpenAccount;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
@@ -72,6 +72,8 @@ class OpenAccountShould {
 
 
         Assertions.assertThat(response.getFamily()).isEqualTo("");
+        Assertions.assertThat(response.getIbanNumber().substring(0,2)).isEqualTo("IR");
+        Assertions.assertThat(response.getIbanNumber().length()).isEqualTo(24);
         Assertions.assertThat(response.getNumberOfCart().length()).isEqualTo(16);
         Assertions.assertThat(response.getNumberOfCart().substring(0, 4)).isEqualTo(bank.getCode());
 
