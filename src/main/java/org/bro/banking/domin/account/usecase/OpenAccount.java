@@ -10,12 +10,14 @@ import org.bro.banking.domin.bank.Banks;
 import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @RequiredArgsConstructor
+@Service
 public class OpenAccount {
 
     private static final String REGION_CODE = "IR";
@@ -86,7 +88,7 @@ public class OpenAccount {
     }
 
 
-    static boolean checkLuhn(String cardNo) {
+    boolean checkLuhn(String cardNo) {
         int nDigits = cardNo.length();
 
         int nSum = 0;
