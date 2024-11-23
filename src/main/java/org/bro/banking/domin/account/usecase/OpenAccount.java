@@ -13,6 +13,8 @@ import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -26,7 +28,7 @@ public class OpenAccount {
     private static final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
     ThreadLocalRandom random = ThreadLocalRandom.current();
 
-    public CartResponse open(OpenAccountRequest request) {
+    public CartResponse add(OpenAccountRequest request) {
         boolean exist = accounts.isExist(request.getNationalCode(), request.getBankId());
         if (exist)
             throw new IllegalArgumentException("you have an account already ");
@@ -68,34 +70,42 @@ public class OpenAccount {
     }
 
     private String generateCardNumber(String codeBank) {
-        boolean tryAgain = true;
 
+        Set<String> curd = new HashSet<>();
         var builder = new StringBuilder();
-        while (tryAgain) {
-            builder.append(codeBank);
-            for (int i = 0; i < 12; i++) {
-                int digit = random.nextInt(10);
-                builder.append(digit);
-            }
-            var cardNumber = builder.toString();
-            if (checkLuhn(cardNumber))
-                tryAgain = false;
-            else
-                builder.delete(0, cardNumber.length());
+        for (int index = 0; index < 10000000; index++) {
+            boolean tryAgain = true;
+            while (tryAgain) {
+                builder.append(codeBank);
+                for (int i = 0; i < 12; i++) {
+                    int digit = random.nextInt(10);
+                    builder.append(digit);
+                }
+                var cardNumber = builder.toString();
+                if (validationCardNumber(cardNumber))
+                    tryAgain = false;
+                else
+                    builder.delete(0, cardNumber.length());
 
+            }
+
+            curd.add(builder.toString());
         }
+
+        System.out.println(curd.size());
+        System.out.println("--------------------------------");
         return builder.toString();
     }
 
 
-    boolean checkLuhn(String cardNo) {
+    boolean validationCardNumber(String cardNo) {
         int nDigits = cardNo.length();
 
         int nSum = 0;
         boolean isSecond = false;
-        for (int i = nDigits - 1; i >= 0; i--) {
+        for (int index = nDigits - 1; index >= 0; index--) {
 
-            int d = cardNo.charAt(i) - '0';
+            int d = cardNo.charAt(index) - '0';
 
             if (isSecond)
                 d = d * 2;

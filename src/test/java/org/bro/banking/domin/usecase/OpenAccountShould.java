@@ -32,7 +32,7 @@ class OpenAccountShould {
     void customer_canNot_open_account_with_existed_acc_in_same_bank() {
         when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(true);
         var openAccount = new OpenAccount(mockAccounts, banks);
-        assertThrows(IllegalArgumentException.class, () -> openAccount.open(getRequest()));
+        assertThrows(IllegalArgumentException.class, () -> openAccount.add(getRequest()));
     }
 
     @Test
@@ -44,7 +44,7 @@ class OpenAccountShould {
                 .build();
 
 
-        assertThrows(IllegalArgumentException.class, () -> openAccount.open(request));
+        assertThrows(IllegalArgumentException.class, () -> openAccount.add(request));
 
     }
 
@@ -68,7 +68,7 @@ class OpenAccountShould {
                 .nationalCode("")
                 .build();
 
-        CartResponse response = openAccount.open(request);
+        CartResponse response = openAccount.add(request);
 
 
         Assertions.assertThat(response.getFamily()).isEqualTo("");
