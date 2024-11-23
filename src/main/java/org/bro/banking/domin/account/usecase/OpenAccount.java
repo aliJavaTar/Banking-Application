@@ -74,14 +74,13 @@ public class OpenAccount {
 
         BigInteger baseNumber = new BigInteger(codeBank + "000000000000");
 
-        for (BigInteger index = BigInteger.ZERO; index.compareTo(BigInteger.TEN.pow(7)) < 0; index = index.add(BigInteger.ONE)) {
+        for (BigInteger index = BigInteger.ZERO; index.compareTo(BigInteger.TEN.pow(9)) < 0; index = index.add(BigInteger.ONE)) {
             BigInteger cardNumber = baseNumber.add(index);
 
             flag = validationCardNumber(cardNumber.toString());
             if (flag)
                 count = count.add(BigInteger.ONE);
-            if (count.remainder(bigInteger).longValue()== 0)
-                System.out.println(count);
+
         }
         System.out.println(count);
 
