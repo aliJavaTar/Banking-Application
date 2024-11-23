@@ -72,17 +72,33 @@ public class OpenAccount {
 
     private void generateCardNumber(final String codeBank) {
 
-        BigInteger baseNumber = new BigInteger(codeBank + "000000000000");
+        double pow = 1e+12;
 
-        for (BigInteger index = BigInteger.ZERO; index.compareTo(BigInteger.TEN.pow(9)) < 0; index = index.add(BigInteger.ONE)) {
-            BigInteger cardNumber = baseNumber.add(index);
+        One one = new One(codeBank, 0L, (long) (pow / 4));
+        One tow = new One(codeBank, (long) (pow / 4), (long) (pow * 2 / 4));
+        One three = new One(codeBank, (long) (pow * 2 / 4), (long) (pow * 3 / 4));
+        One four = new One(codeBank, (long) (pow * 3 / 4), (long) pow);
 
-            flag = validationCardNumber(cardNumber.toString());
-            if (flag)
-                count = count.add(BigInteger.ONE);
 
-        }
-        System.out.println(count);
+        Thread t1 = new Thread(one);
+        Thread t2 = new Thread(one);
+
+
+        t1.start();
+        t2.start();
+        System.out.println("finish ");
+
+//        BigInteger baseNumber = new BigInteger(codeBank + "000000000000");
+//
+//        for (BigInteger index = BigInteger.ZERO; index.compareTo(BigInteger.TEN.pow(4)) < 0; index = index.add(BigInteger.ONE)) {
+//            BigInteger cardNumber = baseNumber.add(index);
+//
+//            flag = validationCardNumber(cardNumber.toString());
+//            if (flag)
+//                count = count.add(BigInteger.ONE);
+//
+//        }
+//        System.out.println(count);
 
 
     }
