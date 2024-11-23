@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,18 +29,20 @@ class OpenAccountShould {
     private Accounts mockAccounts;
     @Mock
     private Banks banks;
+    @Mock
+    private Clock clock;
 
     @Test
     void customer_canNot_open_account_with_existed_acc_in_same_bank() {
         when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(true);
-        var openAccount = new OpenAccount(mockAccounts, banks);
+        var openAccount = new OpenAccount(mockAccounts, banks, clock);
         assertThrows(IllegalArgumentException.class, () -> openAccount.add(getRequest()));
     }
 
     @Test
     void can_not_open_account_with_wrong_phone_number() {
         when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
-        var openAccount = new OpenAccount(mockAccounts, banks);
+        var openAccount = new OpenAccount(mockAccounts, banks,clock);
         OpenAccountRequest request = OpenAccountRequest.builder().amount(new BigDecimal(10)).bankId(1).firstname("")
                 .phoneNumber("4353452354").lastname("").nameOfFather("test").nationalCode("")
                 .build();
@@ -52,27 +56,21 @@ class OpenAccountShould {
     @Test
     void customer_open_account_and_get_cart() {
         when(mockAccounts.isExist(anyString(), anyLong())).thenReturn(false);
+//        when(LocalDate.now()).thenReturn(LocalDate.now());
 
         var bank = new Bank();
         bank.setCode("4231");
         when(banks.getById(anyLong())).thenReturn(Optional.of(bank));
 
-        var openAccount = new OpenAccount(mockAccounts, banks);
-        var request = OpenAccountRequest.builder()
-                .amount(new BigDecimal(10))
-                .bankId(1)
-                .firstname("")
-                .phoneNumber("+989302223121")
-                .lastname("")
-                .nameOfFather("test")
-                .nationalCode("")
-                .build();
+        var openAccount = new OpenAccount(mockAccounts, banks,clock);
+        var request = OpenAccountRequest.builder().amount(new BigDecimal(10)).bankId(1).firstname("")
+                .phoneNumber("+989302223121").lastname("").nameOfFather("test").nationalCode("").build();
 
         CartResponse response = openAccount.add(request);
 
 
         Assertions.assertThat(response.getFamily()).isEqualTo("");
-        Assertions.assertThat(response.getIbanNumber().substring(0,2)).isEqualTo("IR");
+        Assertions.assertThat(response.getIbanNumber().substring(0, 2)).isEqualTo("IR");
         Assertions.assertThat(response.getIbanNumber().length()).isEqualTo(24);
         Assertions.assertThat(response.getNumberOfCart().length()).isEqualTo(16);
         Assertions.assertThat(response.getNumberOfCart().substring(0, 4)).isEqualTo(bank.getCode());
@@ -80,14 +78,7 @@ class OpenAccountShould {
     }
 
     private OpenAccountRequest getRequest() {
-        return OpenAccountRequest.builder()
-                .amount(new BigDecimal(10))
-                .bankId(1)
-                .firstname("")
-                .phoneNumber("09212221423")
-                .lastname("")
-                .nameOfFather("test")
-                .nationalCode("")
-                .build();
+        return OpenAccountRequest.builder().amount(new BigDecimal(10)).bankId(1).firstname("")
+                .phoneNumber("09212221423").lastname("").nameOfFather("test").nationalCode("").build();
     }
 }

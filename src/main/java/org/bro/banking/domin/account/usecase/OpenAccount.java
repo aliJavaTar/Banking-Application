@@ -5,15 +5,19 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.domin.bank.Bank;
 import org.bro.banking.domin.bank.Banks;
-import org.bro.banking.domin.account.Accounts;
 import org.bro.banking.presentation.openaccountdto.CartResponse;
 import org.bro.banking.presentation.openaccountdto.OpenAccountRequest;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -25,8 +29,10 @@ public class OpenAccount {
     private static final String REGION_CODE = "IR";
     private final Accounts accounts;
     private final Banks banks;
+    private final Clock clock;
     private static final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-    ThreadLocalRandom random = ThreadLocalRandom.current();
+    private final ThreadLocalRandom random = ThreadLocalRandom.current();
+
 
     public CartResponse add(OpenAccountRequest request) {
         boolean exist = accounts.isExist(request.getNationalCode(), request.getBankId());
@@ -47,54 +53,39 @@ public class OpenAccount {
         Bank bank = banks.getById(request.getBankId()).orElseThrow(() ->
                 new IllegalArgumentException("this bank does not exist"));
 
+        generateCardNumber(bank.getCode());
         return CartResponse.builder().name(request.getFirstname())
                 .family(request.getLastname())
-                .expirationDate(LocalDate.now().plusYears(5))
+//                .expirationDate(LocalDate.now(clock).plusYears(5))
                 .cvv2(random.nextInt(random.nextInt(100, 9999)))
                 .mainPassword(random.nextInt(random.nextInt(1000, 9999)))
                 .secondPassword(random.nextLong(random.nextInt(100000000, 999999999)))
-                .numberOfCart(generateCardNumber(bank.getCode()))
-                .ibanNumber(generate()).build();
+//                .numberOfCart(generateCardNumber(bank.getCode()))
+//                .ibanNumber(ibanBuilder.toString())
+                .ibanNumber("").build();
     }
 
-    private String generate() {
+    //
+    BigInteger count = BigInteger.ZERO;
+    boolean flag = false;
+    BigInteger bigInteger = new BigInteger("10000000");
 
-        var builder = new StringBuilder();
-        builder.append(REGION_CODE);
-        for (int i = 0; i < 22; i++) {
-            int digit = random.nextInt(10);
-            builder.append(digit);
+    private void generateCardNumber(final String codeBank) {
+
+        BigInteger baseNumber = new BigInteger(codeBank + "000000000000");
+
+        for (BigInteger index = BigInteger.ZERO; index.compareTo(BigInteger.TEN.pow(7)) < 0; index = index.add(BigInteger.ONE)) {
+            BigInteger cardNumber = baseNumber.add(index);
+
+            flag = validationCardNumber(cardNumber.toString());
+            if (flag)
+                count = count.add(BigInteger.ONE);
+            if (count.remainder(bigInteger).longValue()== 0)
+                System.out.println(count);
         }
-        return builder.toString();
+        System.out.println(count);
 
-    }
 
-    private String generateCardNumber(String codeBank) {
-
-        Set<String> curd = new HashSet<>();
-        var builder = new StringBuilder();
-        for (int index = 0; index < 10000000; index++) {
-            boolean tryAgain = true;
-            while (tryAgain) {
-                builder.append(codeBank);
-                for (int i = 0; i < 12; i++) {
-                    int digit = random.nextInt(10);
-                    builder.append(digit);
-                }
-                var cardNumber = builder.toString();
-                if (validationCardNumber(cardNumber))
-                    tryAgain = false;
-                else
-                    builder.delete(0, cardNumber.length());
-
-            }
-
-            curd.add(builder.toString());
-        }
-
-        System.out.println(curd.size());
-        System.out.println("--------------------------------");
-        return builder.toString();
     }
 
 
