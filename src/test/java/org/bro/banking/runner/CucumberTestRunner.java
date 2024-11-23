@@ -13,6 +13,5 @@ import static io.cucumber.core.options.Constants.PLUGIN_PUBLISH_QUIET_PROPERTY_N
 @SelectClasspathResource("features")
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "org.bro.banking.stepdefs")
 @ConfigurationParameter(key = PLUGIN_PUBLISH_QUIET_PROPERTY_NAME, value = "true")
-//@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@RunMe and not @Skip")
 public class CucumberTestRunner {
 }

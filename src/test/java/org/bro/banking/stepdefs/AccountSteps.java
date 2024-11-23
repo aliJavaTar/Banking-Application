@@ -11,7 +11,6 @@ public class AccountSteps {
 
     @Given("I provide a valid phone number")
     public void iProvideAValidPhoneNumber() {
-        System.out.println("adfsasdfa");
     }
 
     @When("I submit the account opening request")
