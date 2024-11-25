@@ -1,12 +1,21 @@
 package org.bro.banking.domin.usecase;
 
 import org.assertj.core.api.Assertions;
+import org.bro.banking.domin.Account;
 import org.bro.banking.domin.Accounts;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(Mock.class)
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+
 class TransferMoneyShould {
 
     @Mock
@@ -14,6 +23,10 @@ class TransferMoneyShould {
 
     @Test
     void not_transfer_money_if_source_account_does_not_exist() {
+
+        when(accounts.getAccountByIdAndNationalNumber(anyLong(),anyString()))
+                .thenReturn(Optional.ofNullable(Account.class));
+
         // Given
         long account_id = 0;
         String national_number = "";
