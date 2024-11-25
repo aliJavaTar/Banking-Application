@@ -13,7 +13,7 @@ import java.time.LocalDate;
 
 public class Account {
     @Getter
-    private long id;
+    private final long id;
     @Getter
     private final BigDecimal amount;
     @Getter

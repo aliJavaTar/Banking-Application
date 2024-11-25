@@ -3,14 +3,8 @@ package org.bro.banking.domain.account.usecase;
 import org.bro.banking.domain.account.Account;
 import org.bro.banking.domain.account.Accounts;
 import org.bro.banking.domain.account.exption.AccountDoesNotExist;
-import org.bro.banking.domain.account.exption.AmountMustBeGreaterThanZeroException;
-import org.bro.banking.domain.account.exption.SameSourceAndDestinationAccountException;
-import org.bro.banking.domain.exception.CustomExcepting;
-import org.bro.banking.domain.exception.ErrorType;
 import org.bro.banking.per.dto.TransferRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.math.BigDecimal;
 
 public class TransferMoney {
     private final Accounts accounts;
