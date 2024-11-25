@@ -1,10 +1,30 @@
 package org.bro.banking.domin.usecase;
 
+import org.assertj.core.api.Assertions;
+import org.bro.banking.domin.Accounts;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 
+@ExtendWith(Mock.class)
 class TransferMoneyShould {
+
+    @Mock
+    private Accounts accounts;
+
     @Test
     void not_transfer_money_if_source_account_does_not_exist() {
+        // Given
+        long account_id = 0;
+        String national_number = "";
+
+        // When
+        var transfer = new TransferMoney(accounts);
+
+
+        // Then
+        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(account_id, national_number))
+                .hasMessage("Source account does not exist");
 
     }
 
@@ -16,9 +36,7 @@ class TransferMoneyShould {
 
     @Test
     void not_transfer_money_if_amount_is_zero() {
-        // Given
-        // i should find accounts with id or number of accounts , and national_number ,
-        // then  if amount is zero  throw exception
+
     }
 
     @Test
@@ -30,7 +48,6 @@ class TransferMoneyShould {
     void not_transfer_money_if_source_and_destination_accounts_are_the_same() {
 
     }
-
 
 
     @Test
