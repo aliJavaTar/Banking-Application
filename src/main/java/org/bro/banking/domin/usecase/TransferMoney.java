@@ -1,6 +1,10 @@
 package org.bro.banking.domin.usecase;
 
+import org.bro.banking.domin.Account;
 import org.bro.banking.domin.Accounts;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.math.BigDecimal;
 
 public class TransferMoney {
     private final Accounts accounts;
@@ -9,13 +13,28 @@ public class TransferMoney {
         this.accounts = accounts;
     }
 
-    public void transferToAccount(long accountId, String nationalNumber) {
-        // Implement transfer logic here
-        // Check if source account exists, destination account exists, amount is not zero,
-        // source account has sufficient balance, source and destination accounts are not the same,
-        // source account is active, destination account is active,
-        // update source account balance, update destination account balance,
-        // and update transfer history
-        throw new IllegalArgumentException("Source account does not exist");
+    public void transferToAccount(long sourceAccountId, long destinationAccountId, BigDecimal amount) {
+
+        Object username = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (destinationAccountId == sourceAccountId) {
+            throw new IllegalArgumentException("Source and destination accounts are the same");
+        }
+
+        Account sourceAccount = accounts.getByIdAndUsername(sourceAccountId, username.toString())
+                .orElseThrow(() -> new IllegalArgumentException("Source account does not exist"));
+
+        accounts.getById(destinationAccountId)
+                .orElseThrow(() -> new IllegalArgumentException("destination  account does not exist"));
+
+        if (amount.intValue() <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+
+        if (sourceAccount.getAmount().compareTo(amount) <= 0) {
+            throw new IllegalArgumentException("Insufficient funds: Your account balance is too low to complete this transaction");
+        }
+
+
     }
 }
