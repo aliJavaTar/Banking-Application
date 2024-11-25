@@ -55,7 +55,7 @@ class TransferMoneyControllerShould {
     }
 
     @Test
-    void shouldReturnOkWhenTransferIsSuccessful() throws Exception {
+    void whenTransferaseSuccessFullShowOk() throws Exception {
         BigDecimal sourceAmount = new BigDecimal("100");
         BigDecimal destinationAmount = new BigDecimal("50");
         BigDecimal amountToTransfer = new BigDecimal("50");
@@ -76,7 +76,7 @@ class TransferMoneyControllerShould {
     }
 
     @Test
-    void shouldReturnOkWhenTransferIsSuccessful_() throws Exception {
+    void when_dont_have_SufficientFunds_show_badRequest() throws Exception {
         BigDecimal sourceAmount = new BigDecimal("1");
         BigDecimal destinationAmount = new BigDecimal("5");
         BigDecimal amountToTransfer = new BigDecimal("5088");
