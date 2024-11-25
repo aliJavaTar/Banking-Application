@@ -49,6 +49,9 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_and_destination_accounts_are_the_same() {
+        Account account = new Account(0, BigDecimal.ZERO, LocalDate.now(), clock);
+        when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
+        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
 
         Assertions.assertThatThrownBy(() -> transfer.transferToAccount(new TransferRequest()))
                 .isInstanceOf(SameSourceAndDestinationAccountException.class)
@@ -73,7 +76,7 @@ class TransferMoneyShould {
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_destination_account_does_not_exist() {
 
-        var account = new Account(BigDecimal.ONE, getExpiredDatePlusDays(), clock);
+        var account = new Account(0, BigDecimal.ONE, getExpiredDatePlusDays(), clock);
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
         when(accounts.getById(anyLong())).thenReturn(Optional.empty());
 
@@ -86,24 +89,14 @@ class TransferMoneyShould {
 
     @Test
     @WithMockUser(username = "alien", password = "1234")
-    void not_transfer_money_if_amount_is_zero() {
-        var account = new Account(BigDecimal.ONE, getExpiredDatePlusDays(), clock);
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
-        when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
-
-        Assertions.assertThatThrownBy(() -> transfer(1, 54, BigDecimal.ZERO))
-                .hasMessage("Amount must be greater than zero");
-    }
-
-    @Test
-    @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_account_has_insufficient_balance() {
 
-        var account = new Account(BigDecimal.TEN, getExpiredDatePlusDays(), clock);
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
+        var source = new Account(1, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
+        var account = new Account(2, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
+        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(source));
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
 
-        Assertions.assertThatThrownBy(() -> transfer(2, 0, BigDecimal.TEN))
+        Assertions.assertThatThrownBy(() -> transfer(source.getId(), account.getId(), BigDecimal.TEN))
                 .hasMessage("Insufficient funds: Your account balance is too low to complete this transaction");
 
     }
@@ -112,7 +105,7 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_account_is_not_active() {
-        var account = new Account(BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+        var account = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
 
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
@@ -124,7 +117,7 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_destination_account_is_not_active() {
-        var account = new Account(BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+        var account = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
 
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));

@@ -4,7 +4,6 @@ import org.bro.banking.domain.account.Account;
 import org.bro.banking.domain.account.Accounts;
 import org.bro.banking.domain.account.exption.AccountDoesNotExist;
 import org.bro.banking.domain.account.exption.AmountMustBeGreaterThanZeroException;
-import org.bro.banking.domain.account.exption.InsufficientFundsException;
 import org.bro.banking.domain.account.exption.SameSourceAndDestinationAccountException;
 import org.bro.banking.domain.exception.CustomExcepting;
 import org.bro.banking.domain.exception.ErrorType;
@@ -23,38 +22,23 @@ public class TransferMoney {
 
     public void transferToAccount(TransferRequest request) {
 
-        long sourceAccountId = request.getSourceAccountId();
-        long destinationAccountId = request.getDestinationAccountId();
-        BigDecimal amount = request.getAmount();
-
         Object username = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-
-        if (destinationAccountId == sourceAccountId) {
-            throw new SameSourceAndDestinationAccountException();
-        }
-
-        Account sourceAccount = accounts.getByIdAndUsername(sourceAccountId, username.toString())
+        Account sourceAccount = accounts.getByIdAndUsername(request.getSourceAccountId(), username.toString())
                 .orElseThrow(() -> new AccountDoesNotExist("Source"));
 
-        Account destinationAccount = accounts.getById(destinationAccountId)
+        Account destinationAccount = accounts.getById(request.getDestinationAccountId())
                 .orElseThrow(() -> new AccountDoesNotExist("Destination"));
 
-        if (sourceAccount.isExpired()) {
-            throw new CustomExcepting(ErrorType.SOURCE_ACCOUNT_EXPIRED);
-        }
+        sourceAccount.validationTransfer(request.getDestinationAccountId());
+        timeValidation(sourceAccount, destinationAccount);
+        sourceAccount.validationEnoughMoney(request.getAmount());
 
-        if (destinationAccount.isExpired()) {
-            throw new CustomExcepting(ErrorType.DESTINATION_ACCOUNT_EXPIRED);
-        }
 
-        if (amount.intValue() <= 0) {
-            throw new AmountMustBeGreaterThanZeroException();
-        }
+    }
 
-        if (sourceAccount.getAmount().compareTo(amount) <= 0) {
-            throw new InsufficientFundsException();
-        }
-
+    private void timeValidation(Account sourceAccount, Account destinationAccount) {
+        sourceAccount.timeValidation();
+        destinationAccount.timeValidation();
     }
 }

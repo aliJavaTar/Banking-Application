@@ -6,9 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorType {
 
-    SOURCE_ACCOUNT_EXPIRED(1, HttpStatus.BAD_REQUEST),
-
-    DESTINATION_ACCOUNT_EXPIRED(2, HttpStatus.BAD_REQUEST);
+    DESTINATION_OR_SOURCE_ACCOUNT_EXPIRED(1, HttpStatus.BAD_REQUEST);
 
     private final int errorCode;
     private final HttpStatus httpStatus;
