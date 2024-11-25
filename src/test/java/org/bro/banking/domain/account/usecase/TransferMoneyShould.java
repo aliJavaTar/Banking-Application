@@ -6,7 +6,7 @@ import org.bro.banking.domain.account.Accounts;
 import org.bro.banking.domain.account.exption.AccountDoesNotExist;
 import org.bro.banking.domain.account.exption.SameSourceAndDestinationAccountException;
 import org.bro.banking.domain.exception.CustomExcepting;
-import org.bro.banking.per.dto.TransferRequest;
+import org.bro.banking.presentation.dto.TransferRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

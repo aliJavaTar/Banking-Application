@@ -3,9 +3,11 @@ package org.bro.banking.domain.account.usecase;
 import org.bro.banking.domain.account.Account;
 import org.bro.banking.domain.account.Accounts;
 import org.bro.banking.domain.account.exption.AccountDoesNotExist;
-import org.bro.banking.per.dto.TransferRequest;
+import org.bro.banking.presentation.dto.TransferRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
+@Service
 public class TransferMoney {
     private final Accounts accounts;
 
@@ -26,7 +28,7 @@ public class TransferMoney {
 
         validation(request, sourceAccount, destinationAccount);
 
-        sourceAccount.updateBalancesForTransfer(destinationAccount,request.getAmountToTransfer());
+        sourceAccount.updateBalancesForTransfer(destinationAccount, request.getAmountToTransfer());
 
         accounts.updateAccount(sourceAccount);
         accounts.updateAccount(destinationAccount);

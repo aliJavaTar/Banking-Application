@@ -1,4 +1,4 @@
-package org.bro.banking.per.dto;
+package org.bro.banking.presentation.dto;
 
 import lombok.Getter;
 
