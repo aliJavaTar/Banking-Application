@@ -6,6 +6,7 @@ import org.bro.banking.per.dto.TransferRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 
 public class TransferMoney {
     private final Accounts accounts;
@@ -31,8 +32,16 @@ public class TransferMoney {
         Account sourceAccount = accounts.getByIdAndUsername(sourceAccountId, username.toString())
                 .orElseThrow(() -> new IllegalArgumentException("Source account does not exist"));
 
-        accounts.getById(destinationAccountId)
+        Account destinationAccount = accounts.getById(destinationAccountId)
                 .orElseThrow(() -> new IllegalArgumentException("destination  account does not exist"));
+
+        if (sourceAccount.isExpired()) {
+            throw new IllegalArgumentException("Source account has expired. Cannot transfer money.");
+        }
+
+        if (destinationAccount.isExpired()) {
+            throw new IllegalArgumentException("Destination account has expired. Cannot transfer money.");
+        }
 
         if (amount.intValue() <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
