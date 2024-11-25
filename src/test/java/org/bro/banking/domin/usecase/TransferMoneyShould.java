@@ -3,6 +3,8 @@ package org.bro.banking.domin.usecase;
 import org.assertj.core.api.Assertions;
 import org.bro.banking.domin.Account;
 import org.bro.banking.domin.Accounts;
+import org.bro.banking.per.dto.TransferRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -26,21 +28,20 @@ class TransferMoneyShould {
     @Mock
     private Accounts accounts;
 
+    private TransferMoney transfer;
+
+    @BeforeEach
+    void setUp() {
+        transfer = new TransferMoney(accounts);
+    }
+
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_and_destination_accounts_are_the_same() {
 
-        long accountId = 0;
-        long destinationAccountId = 0;
-        BigDecimal amount = new BigDecimal("0");
-
-        var transfer = new TransferMoney(accounts);
-
-
-        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(accountId, destinationAccountId, amount))
+        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(new TransferRequest()))
                 .hasMessage("Source and destination accounts are the same");
     }
-
 
 
     @Test
@@ -49,19 +50,11 @@ class TransferMoneyShould {
 
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.empty());
 
-        long sourceAccountId = 1;
-
-        long destinationAccountId = 0;
-        BigDecimal amount = new BigDecimal("0");
-
-        var transfer = new TransferMoney(accounts);
-
-
-
-        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(sourceAccountId, destinationAccountId, amount))
+        Assertions.assertThatThrownBy(() -> transfer(1, 0, BigDecimal.ZERO))
                 .hasMessage("Source account does not exist");
 
     }
+
 
     @Test
     @WithMockUser(username = "alien", password = "1234")
@@ -71,15 +64,10 @@ class TransferMoneyShould {
         when(accounts.getById(anyLong())).thenReturn(Optional.empty());
 
 
-        long sourceAccountId = 1;
-        long destinationAccountId = 0;
-        BigDecimal amount = new BigDecimal("0");
 
 
-        var transfer = new TransferMoney(accounts);
 
-
-        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(sourceAccountId, destinationAccountId, amount))
+        Assertions.assertThatThrownBy(() -> transfer(41, 12, BigDecimal.ZERO))
                 .hasMessage("destination  account does not exist");
 
     }
@@ -92,17 +80,9 @@ class TransferMoneyShould {
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
 
-        // Given
-        long sourceAccountId = 1;
-
-        long destinationAccountId = 0;
-        BigDecimal amount = new BigDecimal("0");
-        // When
-        var transfer = new TransferMoney(accounts);
 
 
-        // Then
-        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(sourceAccountId, destinationAccountId, amount))
+        Assertions.assertThatThrownBy(() -> transfer(1, 54, BigDecimal.ZERO))
                 .hasMessage("Amount must be greater than zero");
     }
 
@@ -113,22 +93,11 @@ class TransferMoneyShould {
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
 
-        // Given
-        long sourceAccountId = 1;
-
-        long destinationAccountId = 0;
-        final BigDecimal greatThanAmount = new BigDecimal("12");
-        // When
-        var transfer = new TransferMoney(accounts);
 
 
-        // Then
-        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(sourceAccountId, destinationAccountId, greatThanAmount))
+        Assertions.assertThatThrownBy(() -> transfer(2, 0, BigDecimal.TEN))
                 .hasMessage("Insufficient funds: Your account balance is too low to complete this transaction");
 
-
-        Assertions.assertThatThrownBy(() -> transfer.transferToAccount(sourceAccountId, destinationAccountId, BigDecimal.TEN))
-                .hasMessage("Insufficient funds: Your account balance is too low to complete this transaction");
     }
 
 
@@ -149,4 +118,10 @@ class TransferMoneyShould {
         // When
         // Then
     }
+
+    private  void transfer(long sourceAccountId ,long destinationAccountId , BigDecimal amount) {
+        var request = new TransferRequest(sourceAccountId, destinationAccountId, amount);
+        transfer.transferToAccount(request);
+    }
+
 }

@@ -2,6 +2,7 @@ package org.bro.banking.domin.usecase;
 
 import org.bro.banking.domin.Account;
 import org.bro.banking.domin.Accounts;
+import org.bro.banking.per.dto.TransferRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
@@ -9,13 +10,19 @@ import java.math.BigDecimal;
 public class TransferMoney {
     private final Accounts accounts;
 
+
     public TransferMoney(Accounts accounts) {
         this.accounts = accounts;
     }
 
-    public void transferToAccount(long sourceAccountId, long destinationAccountId, BigDecimal amount) {
+    public void transferToAccount(TransferRequest request) {
+
+        long sourceAccountId = request.getSourceAccountId();
+        long destinationAccountId = request.getDestinationAccountId();
+        BigDecimal amount = request.getAmount();
 
         Object username = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
 
         if (destinationAccountId == sourceAccountId) {
             throw new IllegalArgumentException("Source and destination accounts are the same");
