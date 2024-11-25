@@ -100,12 +100,17 @@ class TransferMoneyControllerShould {
 
     @Test
     void shouldReturnBadRequestWhenAmountIsZero() throws Exception {
+        Account sourceAccount = new Account(1L, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
+        Account destinationAccount = new Account(2L, BigDecimal.ZERO, getExpiredDatePlusDays(), clock);
 
-        TransferRequest request = new TransferRequest(1L, 2L, BigDecimal.ZERO);
+        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(sourceAccount));
+        when(accounts.getById(anyLong())).thenReturn(Optional.of(destinationAccount));
+        TransferRequest request = new TransferRequest(1L, 2L, new BigDecimal("-2"));
 
         mockMvc.perform(put("/transfer")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)));
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 
     private LocalDate getExpiredDateMinusDays() {

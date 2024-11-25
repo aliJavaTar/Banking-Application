@@ -12,7 +12,7 @@ public class TransferRequest {
     private long destinationAccountId;
 
     @NotNull(message = "Amount must not be null")
-    @DecimalMin(value = "5", message = "Amount must be greater than fiver")
+    @DecimalMin(value = "0.0", message = "Amount must be greater than fiver")
     private BigDecimal amountToTransfer;
 
     public TransferRequest() {
