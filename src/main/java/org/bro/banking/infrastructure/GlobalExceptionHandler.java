@@ -14,7 +14,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomExcepting.class)
-    public ResponseEntity<Map<String, Object>> handleCustomException(CustomExcepting ex, WebRequest request) {
+    public ResponseEntity<Map<String, Object>> handleCustomException(CustomExcepting ex) {
         Map<String, Object> body = new HashMap<>();
         body.put("errorType", ex.getErrorType());
         body.put("message", ex.getMessage());
