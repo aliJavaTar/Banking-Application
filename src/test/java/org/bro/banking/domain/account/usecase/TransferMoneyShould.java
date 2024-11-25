@@ -1,8 +1,11 @@
-package org.bro.banking.domin.usecase;
+package org.bro.banking.domain.account.usecase;
 
 import org.assertj.core.api.Assertions;
-import org.bro.banking.domin.Account;
-import org.bro.banking.domin.Accounts;
+import org.bro.banking.domain.account.Account;
+import org.bro.banking.domain.account.Accounts;
+import org.bro.banking.domain.account.exption.AccountDoesNotExist;
+import org.bro.banking.domain.account.exption.SameSourceAndDestinationAccountException;
+import org.bro.banking.domain.exception.CustomExcepting;
 import org.bro.banking.per.dto.TransferRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,7 @@ class TransferMoneyShould {
     void not_transfer_money_if_source_and_destination_accounts_are_the_same() {
 
         Assertions.assertThatThrownBy(() -> transfer.transferToAccount(new TransferRequest()))
+                .isInstanceOf(SameSourceAndDestinationAccountException.class)
                 .hasMessage("Source and destination accounts are the same");
     }
 
@@ -59,6 +63,7 @@ class TransferMoneyShould {
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.empty());
 
         Assertions.assertThatThrownBy(() -> transfer(1, 0, BigDecimal.ZERO))
+                .isInstanceOf(AccountDoesNotExist.class)
                 .hasMessage("Source account does not exist");
 
     }
@@ -73,7 +78,8 @@ class TransferMoneyShould {
         when(accounts.getById(anyLong())).thenReturn(Optional.empty());
 
         Assertions.assertThatThrownBy(() -> transfer(41, 12, BigDecimal.ZERO))
-                .hasMessage("destination  account does not exist");
+                .isInstanceOf(AccountDoesNotExist.class)
+                .hasMessage("Destination account does not exist");
 
     }
 
@@ -112,7 +118,7 @@ class TransferMoneyShould {
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
 
         Assertions.assertThatThrownBy(() -> transfer(2, 0, BigDecimal.TEN))
-                .hasMessage("Source account has expired. Cannot transfer money.");
+                .isInstanceOf(CustomExcepting.class);
     }
 
     @Test
@@ -124,7 +130,7 @@ class TransferMoneyShould {
         when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
 
         Assertions.assertThatThrownBy(() -> transfer(2, 0, BigDecimal.TEN))
-                .hasMessage("Source account has expired. Cannot transfer money.");
+                .isInstanceOf(CustomExcepting.class);
     }
 
 

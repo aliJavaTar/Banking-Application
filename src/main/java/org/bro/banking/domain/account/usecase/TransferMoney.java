@@ -1,7 +1,13 @@
-package org.bro.banking.domin.usecase;
+package org.bro.banking.domain.account.usecase;
 
-import org.bro.banking.domin.Account;
-import org.bro.banking.domin.Accounts;
+import org.bro.banking.domain.account.Account;
+import org.bro.banking.domain.account.Accounts;
+import org.bro.banking.domain.account.exption.AccountDoesNotExist;
+import org.bro.banking.domain.account.exption.AmountMustBeGreaterThanZeroException;
+import org.bro.banking.domain.account.exption.InsufficientFundsException;
+import org.bro.banking.domain.account.exption.SameSourceAndDestinationAccountException;
+import org.bro.banking.domain.exception.CustomExcepting;
+import org.bro.banking.domain.exception.ErrorType;
 import org.bro.banking.per.dto.TransferRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -25,31 +31,30 @@ public class TransferMoney {
 
 
         if (destinationAccountId == sourceAccountId) {
-            throw new IllegalArgumentException("Source and destination accounts are the same");
+            throw new SameSourceAndDestinationAccountException();
         }
 
         Account sourceAccount = accounts.getByIdAndUsername(sourceAccountId, username.toString())
-                .orElseThrow(() -> new IllegalArgumentException("Source account does not exist"));
+                .orElseThrow(() -> new AccountDoesNotExist("Source"));
 
         Account destinationAccount = accounts.getById(destinationAccountId)
-                .orElseThrow(() -> new IllegalArgumentException("destination  account does not exist"));
+                .orElseThrow(() -> new AccountDoesNotExist("Destination"));
 
         if (sourceAccount.isExpired()) {
-            throw new IllegalArgumentException("Source account has expired. Cannot transfer money.");
+            throw new CustomExcepting(ErrorType.SOURCE_ACCOUNT_EXPIRED);
         }
 
         if (destinationAccount.isExpired()) {
-            throw new IllegalArgumentException("Destination account has expired. Cannot transfer money.");
+            throw new CustomExcepting(ErrorType.DESTINATION_ACCOUNT_EXPIRED);
         }
 
         if (amount.intValue() <= 0) {
-            throw new IllegalArgumentException("Amount must be greater than zero");
+            throw new AmountMustBeGreaterThanZeroException();
         }
 
         if (sourceAccount.getAmount().compareTo(amount) <= 0) {
-            throw new IllegalArgumentException("Insufficient funds: Your account balance is too low to complete this transaction");
+            throw new InsufficientFundsException();
         }
-
 
     }
 }

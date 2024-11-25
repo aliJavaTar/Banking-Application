@@ -1,4 +1,4 @@
-package org.bro.banking.domin;
+package org.bro.banking.domain.account;
 
 import lombok.Getter;
 
