@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -146,6 +146,9 @@ class TransferMoneyShould {
 
         Assertions.assertThat(sourceAccount.getAmount()).isEqualTo(new BigDecimal(50));
         Assertions.assertThat(destinationAccount.getAmount()).isEqualTo(new BigDecimal(100));
+
+        verify(accounts, times(1)).updateAccount(destinationAccount);
+        verify(accounts, times(1)).updateAccount(sourceAccount);
     }
 
     private LocalDate getExpiredDateMinusDays() {
