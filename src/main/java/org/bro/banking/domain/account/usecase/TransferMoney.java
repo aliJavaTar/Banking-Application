@@ -24,15 +24,16 @@ public class TransferMoney {
         Account destinationAccount = accounts.getById(request.getDestinationAccountId())
                 .orElseThrow(() -> new AccountDoesNotExist("Destination"));
 
-        sourceAccount.validationTransfer(request.getDestinationAccountId());
-        timeValidation(sourceAccount, destinationAccount);
-        sourceAccount.validationEnoughMoney(request.getAmount());
-
+        validation(request, sourceAccount, destinationAccount);
 
     }
 
-    private void timeValidation(Account sourceAccount, Account destinationAccount) {
+    private void validation(TransferRequest request, Account sourceAccount, Account destinationAccount) {
+        sourceAccount.validationTransfer(request.getDestinationAccountId());
+        sourceAccount.validationEnoughMoney(request.getAmount());
         sourceAccount.timeValidation();
         destinationAccount.timeValidation();
     }
+
+
 }
