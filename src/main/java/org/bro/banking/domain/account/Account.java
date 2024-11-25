@@ -1,6 +1,7 @@
 package org.bro.banking.domain.account;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.bro.banking.domain.account.exption.InsufficientFundsException;
 import org.bro.banking.domain.account.exption.SameSourceAndDestinationAccountException;
 import org.bro.banking.domain.exception.CustomExcepting;
@@ -15,7 +16,8 @@ public class Account {
     @Getter
     private final long id;
     @Getter
-    private final BigDecimal amount;
+    @Setter
+    private BigDecimal amount;
     @Getter
     private final LocalDate expiredTime;
     private final Clock clock;
@@ -28,19 +30,24 @@ public class Account {
         this.clock = clock;
     }
 
-    public void timeValidation()
-    {
-        if( this.isExpired())
+    public void updateBalancesForTransfer(Account destinationAccount, BigDecimal amount) {
+        this.setAmount(this.getAmount().subtract(amount));
+        destinationAccount.setAmount(destinationAccount.getAmount().add(amount));
+    }
+
+
+    public void checkAccountExpiry() {
+        if (this.isExpired())
             throw new CustomExcepting(ErrorType.DESTINATION_OR_SOURCE_ACCOUNT_EXPIRED);
 
     }
 
-    public void validationEnoughMoney(BigDecimal amountToTransfer) {
+    public void hasSufficientFunds(BigDecimal amountToTransfer) {
         if (this.amount.compareTo(amountToTransfer) <= 0)
             throw new InsufficientFundsException();
     }
 
-    public void validationTransfer(long id) {
+    public void checkForSameAccount(long id) {
         if (this.id == id)
             throw new SameSourceAndDestinationAccountException();
     }

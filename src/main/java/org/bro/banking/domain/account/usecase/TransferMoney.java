@@ -14,7 +14,7 @@ public class TransferMoney {
         this.accounts = accounts;
     }
 
-    public void transferToAccount(TransferRequest request) {
+    public void processTransfer(TransferRequest request) {
 
         Object username = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -26,14 +26,17 @@ public class TransferMoney {
 
         validation(request, sourceAccount, destinationAccount);
 
+        sourceAccount.updateBalancesForTransfer(destinationAccount,request.getAmountToTransfer());
+
+        accounts.updateAccount(sourceAccount);
+        accounts.updateAccount(destinationAccount);
     }
+
 
     private void validation(TransferRequest request, Account sourceAccount, Account destinationAccount) {
-        sourceAccount.validationTransfer(request.getDestinationAccountId());
-        sourceAccount.validationEnoughMoney(request.getAmount());
-        sourceAccount.timeValidation();
-        destinationAccount.timeValidation();
+        sourceAccount.checkForSameAccount(request.getDestinationAccountId());
+        sourceAccount.hasSufficientFunds(request.getAmountToTransfer());
+        sourceAccount.checkAccountExpiry();
+        destinationAccount.checkAccountExpiry();
     }
-
-
 }
