@@ -53,10 +53,9 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_and_destination_accounts_are_the_same() {
-        Account senderAccount = new Account(1L, BigDecimal.TWO, LocalDate.now(), clock);
-        Account receverAccount = new Account(1L, BigDecimal.ZERO, LocalDate.now(), clock);
 
-        mockAccounts(senderAccount, receverAccount);
+
+        mockAccounts(getAccount(1L, BigDecimal.TWO), getAccount(1L, BigDecimal.ZERO));
 
         Assertions.assertThatThrownBy(() -> {
                     var request = new TransferRequest(1L, 1L, BigDecimal.TEN);
@@ -84,7 +83,7 @@ class TransferMoneyShould {
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_destination_account_does_not_exist() {
 
-        var account = new Account(0, BigDecimal.ONE, getExpiredDatePlusDays(), clock);
+        Account account = getAccount(0, BigDecimal.ONE);
         when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
         when(accounts.getById(anyLong())).thenReturn(Optional.empty());
 
@@ -95,19 +94,17 @@ class TransferMoneyShould {
     }
 
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("provideInsufficientFundsTestData")
     @WithMockUser(username = "alien", password = "1234")
-    void not_transfer_money_if_source_account_has_insufficient_balance() {
+    void not_transfer_money_if_source_account_has_insufficient_balance(BigDecimal transferAmount) {
 
-        var sourceAccount = new Account(1, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
+        Account resiverAccount = getAccount(2, BigDecimal.TEN);
+        Account senderAccount = getAccount(1, BigDecimal.TEN);
+        mockAccounts(senderAccount, resiverAccount);
 
-        var revicerAccount = new Account(2, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
-
-        mockAccounts(sourceAccount, revicerAccount);
-
-        Assertions.assertThatThrownBy(() -> transferRequest(sourceAccount.getId(), revicerAccount.getId(), null))
+        Assertions.assertThatThrownBy(() -> transferRequest(senderAccount.getId(), resiverAccount.getId(), transferAmount))
                 .hasMessage("Insufficient funds: Your account balance is too low to complete this transaction");
-
     }
 
 
@@ -123,17 +120,17 @@ class TransferMoneyShould {
                 .isInstanceOf(CustomExcepting.class);
     }
 
-    @Test
-    @WithMockUser(username = "alien", password = "1234")
-    void not_transfer_money_if_destination_account_is_not_active() {
-        var senderAccount = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
-        var resiverAccount = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
-
-        mockAccounts(senderAccount, resiverAccount);
-
-        Assertions.assertThatThrownBy(() -> transferRequest(2, 0, BigDecimal.TEN))
-                .isInstanceOf(CustomExcepting.class);
-    }
+//    @Test
+//    @WithMockUser(username = "alien", password = "1234")
+//    void not_transfer_money_if_destination_account_is_not_active() {
+//        var senderAccount = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+//        var resiverAccount = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+//
+//        mockAccounts(senderAccount, resiverAccount);
+//
+//        Assertions.assertThatThrownBy(() -> transferRequest(2, 0, BigDecimal.TEN))
+//                .isInstanceOf(CustomExcepting.class);
+//    }
 
 
     @Test
@@ -142,8 +139,8 @@ class TransferMoneyShould {
         BigDecimal sourceAmount = new BigDecimal(100);
         BigDecimal destinationAmount = new BigDecimal(50);
 
-        var senderAccount = new Account(1, sourceAmount, getExpiredDatePlusDays(), clock);
-        var resiverAccount = new Account(2, destinationAmount, getExpiredDatePlusDays(), clock);
+        var senderAccount = getAccount(1L, sourceAmount);
+        var resiverAccount = getAccount(2L, destinationAmount);
 
         mockAccounts(senderAccount, resiverAccount);
 
@@ -168,6 +165,13 @@ class TransferMoneyShould {
                 .isInstanceOf(CustomExcepting.class);
     }
 
+    static Stream<Arguments> provideInsufficientFundsTestData() {
+        return Stream.of(
+                Arguments.of(BigDecimal.TEN),
+                Arguments.of(BigDecimal.TEN.add(BigDecimal.TEN)),
+                Arguments.of((Object) null)
+        );
+    }
 
     static Stream<Arguments> provideTestData() {
         clock = Clock.fixed(Instant.parse("2024-11-25T00:00:00Z"), ZoneId.of("UTC"));
@@ -182,6 +186,11 @@ class TransferMoneyShould {
                         new Account(2L, BigDecimal.TWO, getExpiredDateMinusDays(), clock)));
 
 
+    }
+
+
+    private Account getAccount(long id, BigDecimal amount) {
+        return new Account(id, amount, getExpiredDatePlusDays(), clock);
     }
 
     private void mockAccounts(Account senderAccount, Account reciverAccount) {
