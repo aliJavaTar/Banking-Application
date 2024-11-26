@@ -10,6 +10,7 @@ import org.bro.banking.domain.exception.ErrorType;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Optional;
 
 
 public class Account {
@@ -43,8 +44,9 @@ public class Account {
     }
 
     public void hasSufficientFunds(BigDecimal amountToTransfer) {
-        if (this.amount.compareTo(amountToTransfer) <= 0)
-            throw new InsufficientFundsException();
+        Optional.ofNullable(amountToTransfer)
+                .filter(sentAmount -> this.amount.compareTo(sentAmount) > 0)
+                .orElseThrow(InsufficientFundsException::new);
     }
 
     public void checkForSameAccount(long id) {

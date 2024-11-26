@@ -20,11 +20,9 @@ public class TransferMoney {
 
         Object username = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Account sourceAccount = accounts.getByIdAndUsername(request.getSourceAccountId(), username.toString())
-                .orElseThrow(() -> new AccountDoesNotExist("Source"));
+        var sourceAccount = getAccountByIdAndUsername(request.getSourceAccountId(), username.toString());
 
-        Account destinationAccount = accounts.getById(request.getDestinationAccountId())
-                .orElseThrow(() -> new AccountDoesNotExist("Destination"));
+        var destinationAccount = getReceiverAccountById(request.getDestinationAccountId());
 
         validation(request, sourceAccount, destinationAccount);
 
@@ -34,6 +32,13 @@ public class TransferMoney {
         accounts.updateAccount(destinationAccount);
     }
 
+    private Account getAccountByIdAndUsername(long accountId, String username) {
+        return accounts.getByIdAndUsername(accountId, username).orElseThrow(() -> new AccountDoesNotExist("Source"));
+    }
+
+    private Account getReceiverAccountById(long accountId) {
+        return accounts.getById(accountId).orElseThrow(() -> new AccountDoesNotExist("Destination"));
+    }
 
     private void validation(TransferRequest request, Account sourceAccount, Account destinationAccount) {
         sourceAccount.checkForSameAccount(request.getDestinationAccountId());

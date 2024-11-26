@@ -10,6 +10,9 @@ import org.bro.banking.presentation.dto.TransferRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,6 +25,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,7 +41,7 @@ class TransferMoneyShould {
 
     private TransferMoney transfer;
 
-    private Clock clock;
+    private static Clock clock;
 
     @BeforeEach
     void setUp() {
@@ -49,11 +53,15 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_and_destination_accounts_are_the_same() {
-        Account account = new Account(0, BigDecimal.ZERO, LocalDate.now(), clock);
-        when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
+        Account senderAccount = new Account(1L, BigDecimal.TWO, LocalDate.now(), clock);
+        Account receverAccount = new Account(1L, BigDecimal.ZERO, LocalDate.now(), clock);
 
-        Assertions.assertThatThrownBy(() -> transfer.processTransfer(new TransferRequest()))
+        mockAccounts(senderAccount, receverAccount);
+
+        Assertions.assertThatThrownBy(() -> {
+                    var request = new TransferRequest(1L, 1L, BigDecimal.TEN);
+                    transfer.processTransfer(request);
+                })
                 .isInstanceOf(SameSourceAndDestinationAccountException.class)
                 .hasMessage("Source and destination accounts are the same");
     }
@@ -91,14 +99,13 @@ class TransferMoneyShould {
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_account_has_insufficient_balance() {
 
-        var source = new Account(1, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
+        var sourceAccount = new Account(1, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
 
-        var account = new Account(2, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
+        var revicerAccount = new Account(2, BigDecimal.TEN, getExpiredDatePlusDays(), clock);
 
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(source));
-        when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
+        mockAccounts(sourceAccount, revicerAccount);
 
-        Assertions.assertThatThrownBy(() -> transferRequest(source.getId(), account.getId(), BigDecimal.TEN))
+        Assertions.assertThatThrownBy(() -> transferRequest(sourceAccount.getId(), revicerAccount.getId(), null))
                 .hasMessage("Insufficient funds: Your account balance is too low to complete this transaction");
 
     }
@@ -107,10 +114,10 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_source_account_is_not_active() {
-        var account = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+        var senderAccount = new Account(1L, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+        var resiverAccount = new Account(4L, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
 
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
-        when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
+        mockAccounts(senderAccount, resiverAccount);
 
         Assertions.assertThatThrownBy(() -> transferRequest(2, 0, BigDecimal.TEN))
                 .isInstanceOf(CustomExcepting.class);
@@ -119,10 +126,10 @@ class TransferMoneyShould {
     @Test
     @WithMockUser(username = "alien", password = "1234")
     void not_transfer_money_if_destination_account_is_not_active() {
-        var account = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+        var senderAccount = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
+        var resiverAccount = new Account(0, BigDecimal.TEN, getExpiredDateMinusDays(), clock);
 
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(account));
-        when(accounts.getById(anyLong())).thenReturn(Optional.of(account));
+        mockAccounts(senderAccount, resiverAccount);
 
         Assertions.assertThatThrownBy(() -> transferRequest(2, 0, BigDecimal.TEN))
                 .isInstanceOf(CustomExcepting.class);
@@ -135,27 +142,59 @@ class TransferMoneyShould {
         BigDecimal sourceAmount = new BigDecimal(100);
         BigDecimal destinationAmount = new BigDecimal(50);
 
-        var sourceAccount = new Account(1, sourceAmount, getExpiredDatePlusDays(), clock);
-        var destinationAccount = new Account(2, destinationAmount, getExpiredDatePlusDays(), clock);
+        var senderAccount = new Account(1, sourceAmount, getExpiredDatePlusDays(), clock);
+        var resiverAccount = new Account(2, destinationAmount, getExpiredDatePlusDays(), clock);
 
-        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(sourceAccount));
-        when(accounts.getById(anyLong())).thenReturn(Optional.of(destinationAccount));
+        mockAccounts(senderAccount, resiverAccount);
 
         transferRequest(1, 2, new BigDecimal(50));
 
 
-        Assertions.assertThat(sourceAccount.getAmount()).isEqualTo(new BigDecimal(50));
-        Assertions.assertThat(destinationAccount.getAmount()).isEqualTo(new BigDecimal(100));
+        Assertions.assertThat(senderAccount.getAmount()).isEqualTo(new BigDecimal(50));
+        Assertions.assertThat(resiverAccount.getAmount()).isEqualTo(new BigDecimal(100));
 
-        verify(accounts, times(1)).updateAccount(destinationAccount);
-        verify(accounts, times(1)).updateAccount(sourceAccount);
+        verify(accounts, times(1)).updateAccount(resiverAccount);
+        verify(accounts, times(1)).updateAccount(senderAccount);
     }
 
-    private LocalDate getExpiredDateMinusDays() {
+
+    @ParameterizedTest
+    @MethodSource("provideTestData")
+    @WithMockUser(username = "alien", password = "1234")
+    void notTransferMoney_whenTimeExpired(Account sourceAccount, Account destinationAccount) {
+        var transferRequest = new TransferRequest(2L, 5L, new BigDecimal("6.0"));
+        mockAccounts(sourceAccount, destinationAccount);
+        Assertions.assertThatThrownBy(() -> transfer.processTransfer(transferRequest))
+                .isInstanceOf(CustomExcepting.class);
+    }
+
+
+    static Stream<Arguments> provideTestData() {
+        clock = Clock.fixed(Instant.parse("2024-11-25T00:00:00Z"), ZoneId.of("UTC"));
+        return Stream.of(
+                Arguments.of(new Account(1L, BigDecimal.TEN, getExpiredDateMinusDays(), clock),
+                        new Account(2L, BigDecimal.TWO, getExpiredDatePlusDays(), clock)),
+
+                Arguments.of(new Account(1L, BigDecimal.TEN, getExpiredDatePlusDays(), clock),
+                        new Account(2L, BigDecimal.TWO, getExpiredDateMinusDays(), clock)),
+
+                Arguments.of(new Account(1L, BigDecimal.TEN, getExpiredDateMinusDays(), clock),
+                        new Account(2L, BigDecimal.TWO, getExpiredDateMinusDays(), clock)));
+
+
+    }
+
+    private void mockAccounts(Account senderAccount, Account reciverAccount) {
+        when(accounts.getByIdAndUsername(anyLong(), anyString())).thenReturn(Optional.of(senderAccount));
+        when(accounts.getById(anyLong())).thenReturn(Optional.of(reciverAccount));
+    }
+
+
+    private static LocalDate getExpiredDateMinusDays() {
         return LocalDate.now(clock).minusDays(1);
     }
 
-    private LocalDate getExpiredDatePlusDays() {
+    private static LocalDate getExpiredDatePlusDays() {
         return LocalDate.now(clock).plusDays(1);
     }
 
