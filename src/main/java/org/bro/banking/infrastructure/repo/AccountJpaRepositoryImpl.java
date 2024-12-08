@@ -1,4 +1,4 @@
-package org.bro.banking.infrastructure.persistence.repo;
+package org.bro.banking.infrastructure.repo;
 
 import lombok.RequiredArgsConstructor;
 import org.bro.banking.domain.account.Account;
@@ -11,7 +11,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AccountJpaRepositoryImpl implements Accounts {
 
-    private final AccountRepository accountRepository;
+
 
     @Override
     public Optional<Account> getByIdAndUsername(long accountId, String username) {
